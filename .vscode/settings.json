@@ -1,0 +1,9 @@
+{
+    "C_Cpp.dimInactiveRegions": false,
+    "files.associations": {
+        "array": "c",
+        "initializer_list": "c",
+        "utility": "c",
+        "mpi.h": "c"
+    }
+}
