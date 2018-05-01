@@ -26,7 +26,7 @@
 
 //#define DEBUG
 
-void process_all_sq (char** all, size_t sq_num, int k_mers, unsigned short* histogram);
+void process_all_sq (char** all, int k_mers, unsigned short* histogram, int inicio, int fin);
 void get_index(char* sq, size_t sz, long long * index);
 void get_char(char* sq, size_t sz, long long index);
 
@@ -38,13 +38,12 @@ int main(int argc, char *argv[])
         exit(1);
     }
     char in_file[200];
-    char out_file[200], ch;
-    int k_mers, my_rank, comm_sz, lines, local_n, contador, times, total = 0;
+    char out_file[200];
+    int k_mers, my_rank, comm_sz, local_n, inicio, fin, residuo;
     char sq_buffer[MAX_SQ], temp_buf[MAX_LINE];
     size_t sq_len, ln_len, i;
     struct timeval t1, t2;
     double elapsedTime;
-    int* beginSequence;
 
     /* Let the system do what it needs to start up MPI */
     MPI_Init(NULL, NULL);
@@ -85,47 +84,9 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Error opening in file\n");
         exit(1);
     }
-    if (my_rank == 0) {
-    times = 2;
-    beginSequence = (int * ) calloc(MAX_SEQUENCE, sizeof(int));
-    while (!feof(infp)) {
-      ch = fgetc(infp);
-      if (ch == '>') {
-        beginSequence[contador] = lines;
-        contador++;
-        total++;
-        if (total == MAX_SEQUENCE) {
-          beginSequence = (int * ) realloc(beginSequence, times * MAX_SEQUENCE * sizeof(int));
-          times++;
-          total = 0;
-        }
-      }
-      if (ch == '\n') {
-        lines++;
-      }
-    }
-    rewind(infp);
-    contador++;
-    beginSequence[contador] = lines;
-  }
-    MPI_Bcast(&contador, 1, MPI_INT, 0,  MPI_COMM_WORLD);
-    if(my_rank != 0 ){
-         beginSequence = (int * ) calloc(contador, sizeof(int));
-    }
-    MPI_Bcast(beginSequence, contador, MPI_INT, 0,  MPI_COMM_WORLD);
-    local_n = (contador - 1)/comm_sz;
-    lines = 0;
     int n_seq = 0;
-    int inicio = beginSequence[local_n*my_rank];
-    int final = beginSequence[local_n*my_rank + 2];
-    printf("P(%d), begin:%d, cont:%d, final:%d ", my_rank, beginSequence[local_n*my_rank], contador, beginSequence[local_n * my_rank + 2]);
-
     while (fgets(temp_buf,MAX_LINE,infp) != NULL )
     {
-        
-        // check if line is a properties line (strating with '>')
-        if(inicio <= lines && final > lines){
-            printf("||%d",lines);
         if(temp_buf[0] == '>')
         {
             if(n_seq > 0)
@@ -160,8 +121,6 @@ int main(int argc, char *argv[])
         ln_len = strlen(temp_buf) - 1;
         sq_len += ln_len;
         strncat(sq_buffer, temp_buf, ln_len);
-        }
-        lines++;
         //sq_len = strlen(sq_buffer);
 //
     } // End While
@@ -170,6 +129,7 @@ int main(int argc, char *argv[])
 # ifdef DEBUG
     printf("Sequence %d of size %ld is %s \n", n_seq, sq_len, sq_buffer);
 # endif
+
     all_sq[n_seq - 1] = (char*) malloc ((sq_len + 1)*sizeof(char));
     strcpy(all_sq[n_seq - 1], sq_buffer);
     if ( n_seq % MAX_SQ == 0)
@@ -178,10 +138,24 @@ int main(int argc, char *argv[])
         all_sq = (char **) realloc (all_sq, (all_sq_sz*sizeof(char*)));
     }
     fclose(infp);
-
+    local_n = n_seq/comm_sz;
+    residuo = n_seq % comm_sz;
+    if(residuo != 0 ){
+        if(my_rank < residuo){
+            inicio = my_rank*(local_n + 1);
+            fin = inicio + local_n;
+        }else{
+            inicio = my_rank*(local_n + 1);
+            fin = inicio + local_n - 1;
+        }
+    }else{
+        inicio = my_rank * local_n;
+        fin = inicio + local_n - 1;
+    }
+    printf("P(%d)  Inicio:%d, Fin:%d, residuo:%d, total:%d", my_rank, inicio, fin, residuo, n_seq);
     // process all sequences
     gettimeofday(&t1, NULL);
-    process_all_sq (all_sq, n_seq, k_mers, histogram);
+    process_all_sq (all_sq, k_mers, histogram, inicio, fin);
     gettimeofday(&t2, NULL);
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms}
@@ -213,18 +187,17 @@ int main(int argc, char *argv[])
     }
     fclose(outfp);
     free(histogram);
-    free(beginSequence);
     /* Shut down MPI */
     MPI_Finalize();
 
     return 0;
 }
 
-void process_all_sq (char** all, size_t sq_num, int k_mers, unsigned short* histogram)
+void process_all_sq (char** all, int k_mers, unsigned short* histogram, int inicio, int fin)
 {
     int i, j, sq_len;
     long long in;
-    for(i = 0; i < sq_num; i++)
+    for(i = inicio; i <= fin; i++)
     {
         sq_len = strlen(all[i]);
         char sub_sq[k_mers + 1]; // including '\0' char
