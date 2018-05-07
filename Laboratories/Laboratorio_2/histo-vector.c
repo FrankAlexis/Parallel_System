@@ -156,6 +156,8 @@ int main(int argc, char *argv[])
     // process all sequences
     gettimeofday(&t1, NULL);
     process_all_sq (all_sq, k_mers, histogram, inicio, fin);
+//    int MPI_Reduce(all_sq, all_sq, n_seq, MPI_CHAR, MPI_Op op, int root, MPI_Comm comm)
+//    int MPI_Reduce(void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
     gettimeofday(&t2, NULL);
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms}
