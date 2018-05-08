@@ -156,7 +156,9 @@ int main(int argc, char *argv[])
     // process all sequences
     gettimeofday(&t1, NULL);
     process_all_sq (all_sq, k_mers, histogram, inicio, fin);
-//    int MPI_Reduce(all_sq, all_sq, n_seq, MPI_CHAR, MPI_Op op, int root, MPI_Comm comm)
+    //MPI_Barrier(MPI_COMM_WORLD);
+    //unsigned short* histogram = (unsigned short*) calloc (max_ent, sizeof(unsigned short));
+    //MPI_Reduce(&local_histogram, &histogram, max_ent, MPI_UNSIGNED_SHORT, MPI_SUM, 0, MPI_COMM_WORLD);
 //    int MPI_Reduce(void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
     gettimeofday(&t2, NULL);
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
@@ -169,25 +171,27 @@ int main(int argc, char *argv[])
         free(all_sq[i]);
     }
     free(all_sq);
-
-    // create an output file
-    FILE *outfp = fopen(out_file, "w");
-    if (outfp == NULL)
-    {
-        fprintf(stderr, "Error opening in file\n");
-        exit(1);
-    }
-    unsigned short fq;
-    char buff[100];
-    long long index;
-    for (index = 0LL; index < max_ent; index++) {
-        if((fq = histogram[index])!=0)
+        // create an output file
+        FILE *outfp = fopen(out_file, "w");
+        if (outfp == NULL)
         {
-            get_char(buff, k_mers, index);
-            fprintf(outfp,"%s\t%hu\n", buff, fq);
+            fprintf(stderr, "Error opening in file\n");
+            exit(1);
         }
-    }
-    fclose(outfp);
+        unsigned short fq;
+        char buff[100];
+        long long index;
+        if(my_rank == 0){
+            for (index = 0LL; index < max_ent; index++) {
+                if((fq = histogram[index])!=0)
+                {
+                    get_char(buff, k_mers, index);
+                    fprintf(outfp,"%s\t%hu\n", buff, fq);
+                }
+            }
+        }
+        fclose(outfp);
+
     free(histogram);
     /* Shut down MPI */
     MPI_Finalize();
