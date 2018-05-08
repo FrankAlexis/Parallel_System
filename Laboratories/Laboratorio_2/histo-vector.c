@@ -156,10 +156,6 @@ int main(int argc, char *argv[])
     // process all sequences
     gettimeofday(&t1, NULL);
     process_all_sq (all_sq, k_mers, histogram, inicio, fin);
-    //MPI_Barrier(MPI_COMM_WORLD);
-    //unsigned short* histogram = (unsigned short*) calloc (max_ent, sizeof(unsigned short));
-    //MPI_Reduce(&local_histogram, &histogram, max_ent, MPI_UNSIGNED_SHORT, MPI_SUM, 0, MPI_COMM_WORLD);
-//    int MPI_Reduce(void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
     gettimeofday(&t2, NULL);
     elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms}
@@ -172,6 +168,7 @@ int main(int argc, char *argv[])
     }
     free(all_sq);
         // create an output file
+        sprintf(out_file, "pre_%d_suff", my_rank);
         FILE *outfp = fopen(out_file, "w");
         if (outfp == NULL)
         {
