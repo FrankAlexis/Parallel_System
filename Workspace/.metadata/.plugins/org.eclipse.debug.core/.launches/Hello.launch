@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="x10dt.ui.launch.java.launching.X10LaunchConfigurationType">
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/HelloWorld/x10-gen-src/Hello.java"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="1"/>
+</listAttribute>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="Hello"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="HelloWorld"/>
+<stringAttribute key="x10dt.ui.launch.cpp.launchAttrs.hostFile" value=""/>
+<stringAttribute key="x10dt.ui.launch.cpp.launchAttrs.hostList" value="localhost"/>
+<intAttribute key="x10dt.ui.launch.cpp.launchAttrs.numPlaces" value="2"/>
+<intAttribute key="x10dt.ui.launch.cpp.launchAttrs.useHostFile" value="1"/>
+<booleanAttribute key="x10dt.ui.launch.cpp.mvm.is_local" value="true"/>
+</launchConfiguration>

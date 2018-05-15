@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="x10dt.ui.launch.java.launching.X10LaunchConfigurationType">
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/ArraySum"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="4"/>
+</listAttribute>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="ParHello"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="ArraySum"/>
+<listAttribute key="x10dt.ui.launch.cpp.launchAttrs.hostList">
+<listEntry value="localhost"/>
+</listAttribute>
+<intAttribute key="x10dt.ui.launch.cpp.launchAttrs.numPlaces" value="1"/>
+<booleanAttribute key="x10dt.ui.launch.cpp.launchAttrs.useHostFile" value="false"/>
+<booleanAttribute key="x10dt.ui.launch.cpp.mvm.is_local" value="true"/>
+</launchConfiguration>

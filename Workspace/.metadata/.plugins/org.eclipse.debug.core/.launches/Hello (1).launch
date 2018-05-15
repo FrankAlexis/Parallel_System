@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="x10dt.ui.cpp.launch.X10LaunchConfigurationType">
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/HelloWorld_C++"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="4"/>
+</listAttribute>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="Hello"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="HelloWorld_C++"/>
+<booleanAttribute key="org.eclipse.ptp.launch.ATTR_CONSOLE" value="true"/>
+<stringAttribute key="org.eclipse.ptp.launch.PROJECT_ATTR" value="HelloWorld_C++"/>
+<stringAttribute key="x10dt.ui.launch.core.X10MainClass" value="Hello"/>
+<stringAttribute key="x10dt.ui.launch.cpp.launchAttrs.hostList" value="localhost"/>
+<intAttribute key="x10dt.ui.launch.cpp.launchAttrs.numPlaces" value="1"/>
+<intAttribute key="x10dt.ui.launch.cpp.launchAttrs.useHostFile" value="1"/>
+</launchConfiguration>
