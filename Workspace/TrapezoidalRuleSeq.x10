@@ -1,4 +1,4 @@
-public class TrapezoidalRuleSeq {
+public class Hello {
 
 	static def f(x: Double) : Double {
 		return x*x*x;
@@ -11,11 +11,10 @@ public class TrapezoidalRuleSeq {
 			var x: Double = a + h * i;
 			sum = sum + f(x);
 		}
-		
 		return sum * h;
 	}
 
-	static def taskTrap (a: Double, b: Double, N: Long, nTasks:Int) : Double {
+	static def taskTrap (a: Long, b: Long, N: Long, nTasks:Int) : Double {
 		var res:Double= 0.0;
 		finish {
 			for(tid in 0..(nTasks-1)) async{
@@ -24,18 +23,13 @@ public class TrapezoidalRuleSeq {
 				var la:Double = a + tid * ln * h;
 				var lb:Double = la + ln*h;
 				var sum: Double = 0.5 * (f(la) + f(lb));    // area
-				
-				
-				
 				for (var i:Int = 1n; i < ln; i++) {
 					var x: Double = la + h * i;
 					sum = sum + f(x);
 				}
-				
 				atomic res += sum * h;
 			} //async
 		} //finish
-		
 		return res;
 	}
 	
@@ -47,10 +41,7 @@ public class TrapezoidalRuleSeq {
 				var ln:Long = N / Place.numPlaces();
 				var la:Double = a + p.id * ln * h;
 				var lb:Double = la + ln*h;
-				var sum: Double = 0.5 					* (f(la) + f(lb));    // area
-				
-				
-				
+				var sum: Double = 0.5 * (f(la) + f(lb));    // area
 				for (var i:Int = 1n; i < ln; i++) {
 					var x: Double = la + h * i;
 					sum = sum + f(x);
@@ -60,22 +51,40 @@ public class TrapezoidalRuleSeq {
 				at(refToRes) refToRes()() += partial;
 			} //async
 		} //finish
-		
-		return refToRes;
+		return refToRes()();
 	}
 	
 	public static def main(args:Rail[String]){
-		var ti:Long = System.currentTimeMillis();
-		var res:Double = trap(0, 10, 1000000000);
-		var tf:Long = System.currentTimeMillis();
-		Console.OUT.println("Trap seq Res = "+res+" in "+(tf-ti)+" ms");
-		
 		//Parallel code by tasks
-		ti = System.currentTimeMillis();
-		res = taskTrap(0, 10, 1000000000, 8n);
-		tf = System.currentTimeMillis();
-		Console.OUT.println("Trap tasks Res = "+res+" in "+(tf-ti)+" ms");
-		
-		
+		var ti:Long = System.currentTimeMillis();
+		val refToRes = new GlobalRef[Cell[Double]](new Cell[Double](0));
+		var a:Long = 0;
+		var b:Long = 10;
+		var nTrap: Long = 1000000000;
+		var nThread: Int = 8n;
+		finish {
+			for(p in Place.places()) async{
+				var local_n:Long = (b-a)/Place.numPlaces();
+				var residuo: Long = (b-a)%Place.numPlaces();
+				if(residuo != 0 ){
+					if(p.id < residuo){
+						a = p.id*(local_n + 1);
+						b = a + local_n;
+					}else{
+						a = p.id*(local_n + 1);
+						b = a + local_n - 1;
+					}
+				}else{
+					a = p.id * local_n;
+					b = a + local_n - 1;
+				}
+				Console.OUT.println("a:"+a+", b:"+b);
+				val partial = taskTrap(a, b, nTrap, nThread);
+				Console.OUT.println("Partial:"+partial);
+				at(refToRes) refToRes()() += partial;
+			}
+		}
+		var tf:Long = System.currentTimeMillis();
+		Console.OUT.println("Trap tasks Res = "+refToRes()()+" in "+(tf-ti)+" ms");	
 	}
 }
