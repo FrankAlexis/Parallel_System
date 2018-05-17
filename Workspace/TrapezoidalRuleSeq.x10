@@ -4,36 +4,7 @@ public class Hello {
 		return x*x*x;
 	}
 	
-	static def trap(a: Double, b: Double, N: Long) : Double {
-		var h: Double = (b - a) / N;              // step size
-		var sum: Double = 0.5 * (f(a) + f(b));    // area
-		for (var i:Int = 1n; i < N; i++) {
-			var x: Double = a + h * i;
-			sum = sum + f(x);
-		}
-		return sum * h;
-	}
-
-	static def taskTrap (a: Long, b: Long, N: Long, nTasks:Int) : Double {
-		var res:Double= 0.0;
-		finish {
-			for(tid in 0..(nTasks-1)) async{
-				var h: Double = (b - a) / N; // step size
-				var ln:Long = N / nTasks;
-				var la:Double = a + tid * ln * h;
-				var lb:Double = la + ln*h;
-				var sum: Double = 0.5 * (f(la) + f(lb));    // area
-				for (var i:Int = 1n; i < ln; i++) {
-					var x: Double = la + h * i;
-					sum = sum + f(x);
-				}
-				atomic res += sum * h;
-			} //async
-		} //finish
-		return res;
-	}
-	
-	static def distTrap (a: Double, b: Double, N: Int) : Double {
+	static def distTrap (a: Double, b: Double, N: Int, nThread: Int) : Double {
 		val refToRes = new GlobalRef[Cell[Double]](new Cell[Double](0));
 		finish {
 			for(p in Place.places()) async{
@@ -42,13 +13,29 @@ public class Hello {
 				var la:Double = a + p.id * ln * h;
 				var lb:Double = la + ln*h;
 				var sum: Double = 0.5 * (f(la) + f(lb));    // area
-				for (var i:Int = 1n; i < ln; i++) {
-					var x: Double = la + h * i;
-					sum = sum + f(x);
+				var res:Double= 0.0;
+				finish {
+					val quotient: Long = ln / nThread;
+					val residue: Long = ln % nThread;
+					for(tid in 0..(nThread - 1)) async{
+						var local_la:Long = tid * quotient;
+						var local_lb:Long = local_la + quotient - 1;
+						if(tid < residue && residue != 0){
+							local_la = tid*(quotient + 1);
+							local_lb = local_la + ln;
+						}else{
+							local_la = tid*(quotient + 1);
+							local_lb = local_la + quotient - 1;
+						}
+						for (var i:Long = local_la; i < local_lb; i++) {
+							var x: Double = la + h * i;
+							sum = sum + f(x);
+						}
+						atomic res += sum * h;
+					}
 				}
-				val partial = sum * h;
 				//atomic res += sum * h;
-				at(refToRes) refToRes()() += partial;
+				at(refToRes) refToRes()() += res;
 			} //async
 		} //finish
 		return refToRes()();
@@ -57,34 +44,12 @@ public class Hello {
 	public static def main(args:Rail[String]){
 		//Parallel code by tasks
 		var ti:Long = System.currentTimeMillis();
-		val refToRes = new GlobalRef[Cell[Double]](new Cell[Double](0));
-		var a:Long = 0;
-		var b:Long = 10;
-		var nTrap: Long = 1000000000;
-		var nThread: Int = 8n;
-		finish {
-			for(p in Place.places()) async{
-				var local_n:Long = (b-a)/Place.numPlaces();
-				var residuo: Long = (b-a)%Place.numPlaces();
-				if(residuo != 0 ){
-					if(p.id < residuo){
-						a = p.id*(local_n + 1);
-						b = a + local_n;
-					}else{
-						a = p.id*(local_n + 1);
-						b = a + local_n - 1;
-					}
-				}else{
-					a = p.id * local_n;
-					b = a + local_n - 1;
-				}
-				Console.OUT.println("a:"+a+", b:"+b);
-				val partial = taskTrap(a, b, nTrap, nThread);
-				Console.OUT.println("Partial:"+partial);
-				at(refToRes) refToRes()() += partial;
-			}
-		}
+		var a:Double = 0;
+		var b:Double = 10;
+		var nTrap: Int = 1000000000n;
+		var nThread: Int = 2n;
+		var refToRes:Double = distTrap(a, b, nTrap, nThread);
 		var tf:Long = System.currentTimeMillis();
-		Console.OUT.println("Trap tasks Res = "+refToRes()()+" in "+(tf-ti)+" ms");	
+		Console.OUT.println("Trap tasks Res = "+refToRes+" in "+(tf-ti)+" ms");	
 	}
 }
